@@ -1,0 +1,37 @@
+/* ===== acessibilidade e utilitários (substituem estilos inline para a CSP) ===== */
+.sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.skip{position:absolute;left:12px;top:-80px;z-index:200;padding:10px 16px;border-radius:10px;background:var(--ink);color:var(--paper);font-weight:600;text-decoration:none;transition:top .15s}
+.skip:focus{top:calc(env(safe-area-inset-top,0px) + 8px)}
+.push{margin-left:auto}
+.owners.first{margin-top:0}
+.meta.gold{color:var(--gold)}
+.vthumb{width:100%;height:100%;object-fit:cover}
+/* tela 404 */
+.nf{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:40px 0}
+.nf .valor-mini{margin-bottom:8px}
+.nf-t{max-width:34ch;margin:0 0 18px;color:var(--ink-soft)}
+/* alvos de toque de 44px também nas janelas (WCAG 2.5.8 / Apple HIG) */
+@media (max-width:640px){.sheet .dlg-head .icon-btn{width:44px;height:44px}}
+/* cartão com foco de teclado visível sobre fundos escuros das janelas */
+.player :focus-visible{outline-color:#E2C36F}
+label[tabindex="0"]:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+/* dourado legível em textos pequenos (contraste AA); o dourado original segue nos títulos grandes */
+:root{--gold-text:#7F6119}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gold-text:#E2C36F}}
+:root[data-theme="dark"]{--gold-text:#E2C36F}
+.names .extra,.extra,.ped .lbl,.meta.gold{color:var(--gold-text)}
+.bottom-legal p{margin:0}
+/* telas de vídeo em celulares pequenos (iPhone SE 1ª geração, 320×568): tudo cabe sem rolagem */
+@media (max-width:360px){.pl-top .lot-mod{font-size:1.3rem}}
+@media (max-height:600px){
+  .player{padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
+  .pi-nm{font-size:1.75rem}.pl-info.two .pi-nm{font-size:1.5rem}
+  .pl-info{padding:5px 12px 7px}
+  .pi-meta{margin-top:1px!important}
+  .pi-ped{margin-top:5px;padding-top:5px;gap:6px}
+  .pi-note{margin-top:4px!important;padding-top:4px}
+  .vframe{margin-top:7px;width:min(100%,calc(21vh * 16 / 9));width:min(100%,calc(21dvh * 16 / 9))}
+  .pl-cta{margin-top:7px}
+  .player .btn{padding:7px 12px;font-size:.82rem}
+  .vopen{display:none}
+}

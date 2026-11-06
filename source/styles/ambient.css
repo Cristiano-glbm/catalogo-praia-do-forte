@@ -1,0 +1,25 @@
+/* ===== som ambiente (canto superior direito) ===== */
+.amb{position:relative;display:flex;align-items:center;gap:8px;flex:none}
+.amb-btn{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%;border:1.5px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .2s,color .2s,transform .18s cubic-bezier(.32,.72,0,1)}
+.amb-btn svg{width:22px;height:22px}
+.amb-btn:active{transform:scale(.94)}
+@media (hover:hover){.amb-btn:hover{background:var(--ink);color:var(--paper)}}
+.amb:not([data-state="on"]) .i-on,.amb[data-state="on"] .i-off{display:none}
+.amb[data-state="waiting"] .amb-btn::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--gold-soft);animation:ripple 2s cubic-bezier(.2,.6,.3,1) infinite;pointer-events:none}
+.amb-tray{display:flex;align-items:center;gap:10px}
+.amb-lbl{display:none;font-size:.84rem;font-weight:500;color:var(--ink-soft);white-space:nowrap}
+.amb.no-vol .amb-vol{display:none}
+.amb-vol{-webkit-appearance:none;appearance:none;width:104px;height:32px;margin:0;padding:0;background:transparent;cursor:pointer;touch-action:pan-y}
+.amb-vol::-webkit-slider-runnable-track{height:5px;border-radius:99px;background:linear-gradient(90deg,var(--gold) var(--p,50%),var(--hair) var(--p,50%))}
+.amb-vol::-moz-range-track{height:5px;border-radius:99px;background:var(--hair)}
+.amb-vol::-moz-range-progress{height:5px;border-radius:99px;background:var(--gold)}
+.amb-vol::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-7.5px;border-radius:50%;background:var(--ink);border:3px solid var(--paper);box-shadow:0 0 0 1.5px var(--ink)}
+.amb-vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);border:3px solid var(--paper);box-shadow:0 0 0 1.5px var(--ink)}
+@media (max-width:760px){
+  .bar .amb{margin-left:0}
+  .amb-btn{width:40px;height:40px}
+  .amb-tray{position:absolute;top:calc(100% + 10px);right:0;z-index:5;gap:12px;padding:8px 16px;border-radius:999px;background:var(--card);border:1px solid var(--hair);box-shadow:var(--shadow);visibility:hidden;opacity:0;transform:translateY(-4px);transition:opacity .2s,transform .2s,visibility 0s .2s}
+  .amb-lbl{display:block}
+  .amb.is-open .amb-tray{visibility:visible;opacity:1;transform:none;transition-delay:0s}
+  .amb-vol{width:120px}
+}

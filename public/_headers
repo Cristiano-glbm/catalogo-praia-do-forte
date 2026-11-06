@@ -1,0 +1,24 @@
+# Cabeçalhos de segurança e cache. A Netlify aplica este arquivo em qualquer tipo de deploy (git, CLI e arrastar e soltar).
+
+/*
+  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://i.ytimg.com; font-src 'self'; media-src 'self'; frame-src https://www.youtube-nocookie.com; connect-src 'none'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+
+# CSS e JS: sempre revalidam (atualizações aparecem na hora)
+/assets/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+/assets/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+# Imagens e áudio: 7 dias
+/assets/img/*
+  Cache-Control: public, max-age=604800
+/assets/audio/*
+  Cache-Control: public, max-age=604800
+# Fontes (nomes versionados): 1 ano
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable

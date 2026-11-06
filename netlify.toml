@@ -1,0 +1,5 @@
+# Netlify — site estático, sem etapa de build obrigatória (a pasta public/ já está pronta).
+# Cabeçalhos de segurança (CSP, HSTS…) e cache ficam em public/_headers.
+[build]
+  publish = "public"
+  command = ""
