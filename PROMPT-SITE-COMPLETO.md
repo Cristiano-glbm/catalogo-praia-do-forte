@@ -177,3 +177,11 @@ Ver `README.md`. Imagens recortadas (PNG/WebP com transparência) estão em `pub
 - CSP restritiva (sem inline), cabeçalhos de segurança no `netlify.toml`, fontes hospedadas (sem Google Fonts), `iframe` do YouTube com `sandbox` e modo privacidade, links externos com `noopener noreferrer`.
 - WCAG 2.1/2.2 AA: contraste, teclado completo, foco gerenciado nas janelas (`inert` no fundo), landmarks, `prefers-reduced-motion`, contagem sem `aria-live` a cada segundo.
 - Regra nova: nada de `style=""`, `<script>` inline ou `on*=""` no HTML.
+
+
+## 13. Vídeos próprios e tela cheia girada (revisão v3)
+
+- Cada lote tem vídeo próprio em `public/assets/video/`: `completo/` (720p, com som), `previa/` (8 s, loop, sem som) e `capas/` (JPG). Substituem o player do YouTube (nenhum terceiro, nenhum `iframe`).
+- Na tela do animal o quadro mostra a prévia em loop; **tocar no quadro** expande com giro de 90° (estilo YouTube), troca para o vídeo completo com som e controles; ✕/`Esc` voltam. Android/desktop: tela cheia real + trava em paisagem; iPhone: giro por CSS.
+- Carregam só quando o animal é aberto; com `prefers-reduced-motion` ou economia de dados só a capa aparece. O som ambiente pausa enquanto o vídeo completo toca.
+- Grama também na frente das patas, como no catálogo impresso.

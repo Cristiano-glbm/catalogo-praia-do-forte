@@ -449,16 +449,10 @@ html,body{overflow-x:clip}
 @keyframes wanudge{0%,100%,30%{transform:rotate(0)}8%{transform:rotate(-12deg)}16%{transform:rotate(10deg)}24%{transform:rotate(-6deg)}}
 /* vídeo: capa com play */
 .vframe{background:#0b1430}
-.vposter{position:absolute;inset:0;display:block;overflow:hidden;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;background:linear-gradient(180deg,#2c7fd6 0%,#3e9ceb 55%,#556b2f 56%,#3d5222 100%)}
-.vthumb{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat;animation:kenburns 14s ease-in-out infinite alternate}
-@keyframes kenburns{from{transform:scale(1.02)}to{transform:scale(1.12)}}
-.vshade{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.05),rgba(0,0,0,.45))}
 .vplay{position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-38px 0 0 -32px;border-radius:50%;background:rgba(255,255,255,.95);box-shadow:0 10px 30px -8px rgba(0,0,0,.6)}
 .vplay::before{content:"";position:absolute;left:26px;top:20px;border-left:20px solid #16275C;border-top:12px solid transparent;border-bottom:12px solid transparent}
 .vplay::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid #fff;animation:ripple 2s cubic-bezier(.2,.6,.3,1) infinite}
 .vlabel{position:absolute;left:0;right:0;bottom:10px;text-align:center;color:#fff;font-weight:600;font-size:.85rem;letter-spacing:.02em;text-shadow:0 1px 6px rgba(0,0,0,.6)}
-.vposter:active .vplay{transform:scale(.94)}
-.vopen{display:block;text-align:center;margin-top:6px;font-size:.78rem;color:#E2C36F;flex:none}
 
 .mark-sep{width:1px;height:22px;background:var(--hair);margin-left:2px}
 .valor-tag{position:relative;height:26px;aspect-ratio:var(--vr);flex:none}
@@ -503,6 +497,31 @@ html,body{overflow-x:clip}
   .tabs-s a[href="#lotes"]{border-color:var(--gold-soft);color:var(--ink)}
   html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 146px)!important}
 }
+
+/* vídeo próprio no quadro + tela cheia girada (estilo YouTube) */
+.vframe .vid-el{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.vexpand{position:absolute;inset:0;z-index:2;cursor:pointer;-webkit-tap-highlight-color:transparent;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.45))}
+.vexpand .vplay{width:54px;height:54px;margin:-30px 0 0 -27px;background:rgba(255,255,255,.92)}
+.vexpand .vplay::before{content:"";position:absolute;left:15px;top:15px;width:24px;height:24px;border:0;background:url(../img/ui/expand.svg) center/24px no-repeat}
+.vclose,.vtag{display:none}
+.fsck{position:fixed;top:0;left:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
+.fsck:checked+.vframe{position:fixed;z-index:50;top:50%;left:50%;width:100vw!important;height:100vh;height:100dvh;max-width:none;margin:0;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;background:#000;transform:translate(-50%,-50%);animation:fsland .45s cubic-bezier(.32,.72,0,1) both}
+@media (orientation:portrait){.fsck:checked+.vframe{width:100vh!important;width:100dvh!important;height:100vw;height:100dvw;transform:translate(-50%,-50%) rotate(90deg);animation:fsrot .55s cubic-bezier(.32,.72,0,1) both}}
+@keyframes fsrot{from{transform:translate(-50%,-50%) rotate(0deg) scale(.42);opacity:.6}to{transform:translate(-50%,-50%) rotate(90deg) scale(1);opacity:1}}
+@keyframes fsland{from{transform:translate(-50%,-50%) scale(.5);opacity:.6}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+.fsck:checked+.vframe .vid-el{object-fit:contain}
+.fsck:checked+.vframe .vexpand{display:none}
+.fsck:checked+.vframe .vclose{display:grid;place-items:center;position:absolute;z-index:3;top:max(14px,env(safe-area-inset-left,0px));left:max(14px,env(safe-area-inset-top,0px));width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:1.1rem;border:1px solid rgba(255,255,255,.35);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fsck:checked+.vframe .vtag{display:block;position:absolute;z-index:3;top:22px;left:72px;right:20px;color:#fff;font-family:var(--serif);font-weight:700;font-size:1rem;text-shadow:0 1px 6px rgba(0,0,0,.7);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation:fade-tag 4s 1s both}
+@keyframes fade-tag{0%,70%{opacity:1}100%{opacity:0}}
+.player:has(.fsck:checked) .pl-top,.player:has(.fsck:checked) .spot,.player:has(.fsck:checked) .pl-info,.player:has(.fsck:checked) .pl-cta{visibility:hidden}
+
+/* grama na frente das patas, como no catálogo impresso */
+.stage .grass-front{position:absolute;left:-1%;right:-1%;bottom:0;height:15%;z-index:3;pointer-events:none;background:var(--grassimg) center top/100% auto repeat-x;border-radius:0 0 14px 14px;filter:brightness(1.04)}
+.stage .herd{z-index:2}
+.stage .church{z-index:4}
+.rel .st .rimg{bottom:5%}
+.rel .st::after{z-index:2;height:17%}
 #f-venda50:target~.wrap .lot:not([data-mod="venda50"]){display:none}
 #f-venda50:target~.tools .chip[href="#f-venda50"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 #f-animal:target~.wrap .lot:not([data-mod="animal"]){display:none}
@@ -520,7 +539,6 @@ html,body{overflow-x:clip}
 .push{margin-left:auto}
 .owners.first{margin-top:0}
 .meta.gold{color:var(--gold)}
-.vthumb{width:100%;height:100%;object-fit:cover}
 /* tela 404 */
 .nf{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:40px 0}
 .nf .valor-mini{margin-bottom:8px}
@@ -548,7 +566,6 @@ label[tabindex="0"]:focus-visible{outline:3px solid var(--sky);outline-offset:3p
   .vframe{margin-top:7px;width:min(100%,calc(21vh * 16 / 9));width:min(100%,calc(21dvh * 16 / 9))}
   .pl-cta{margin-top:7px}
   .player .btn{padding:7px 12px;font-size:.82rem}
-  .vopen{display:none}
 }
 /* ===== som ambiente (canto superior direito) ===== */
 .amb{position:relative;display:flex;align-items:center;gap:8px;flex:none}

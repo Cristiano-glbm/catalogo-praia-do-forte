@@ -52,7 +52,7 @@
   syncChips(); window.addEventListener("hashchange", syncChips);
 
   /* ---------- controles feitos com <label>: ficam acessíveis pelo teclado ---------- */
-  [].forEach.call(document.querySelectorAll("label.cow,label.vid,label.btn,label.icon-btn"), function (l) {
+  [].forEach.call(document.querySelectorAll("label.cow,label.vid,label.btn,label.icon-btn,label.vexpand,label.vclose"), function (l) {
     l.tabIndex = 0;
     l.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); l.click(); } });
   });
@@ -61,16 +61,57 @@
   var radios = [].slice.call(document.querySelectorAll(".ovr")), none = document.getElementById("o-none"),
       page = document.getElementById("page"), open = null, lastFocus = null;
   function videoEvent(playing) { document.dispatchEvent(new CustomEvent("pf:video", { detail: { playing: playing } })); }
-  function resetVideo(r) {
-    var v = r && r.nextElementSibling && r.nextElementSibling.querySelector(".vframe");
-    if (v && v._poster) {
-      v.innerHTML = ""; v.appendChild(v._poster); v._poster = null;
-      if (v._link) { v._link.remove(); v._link = null; }
-      videoEvent(false);
-    }
+  /* ---------- vídeos próprios: prévia em loop no quadro; tela cheia com o vídeo completo ---------- */
+  var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var saveData = !!(navigator.connection && navigator.connection.saveData);
+  var ignoreExit = false;
+  function vidOf(r) { return r && r.nextElementSibling && r.nextElementSibling.querySelector(".vid-el"); }
+  function playPrev(v) {
+    if (!v) return;
+    if (v.dataset.poster && !v.poster) v.poster = v.dataset.poster;
+    if (reduceMotion || saveData) return; /* só a capa: sem vídeo se rolando sozinho (movimento reduzido / economia de dados) */
+    if (v.dataset.prev && v.getAttribute("src") !== v.dataset.prev) v.src = v.dataset.prev;
+    v.muted = true; v.loop = true; v.controls = false;
+    var p = v.play(); if (p && p.catch) p.catch(function () {});
   }
+  function stopVid(v) {
+    if (!v) return;
+    try { v.pause(); } catch (e) {}
+    if (v.dataset.prev) { v.removeAttribute("src"); try { v.load(); } catch (e) {} } /* cancela download do vídeo completo */
+  }
+  function videoEvent(playing) { document.dispatchEvent(new CustomEvent("pf:video", { detail: { playing: playing } })); }
+  function leaveFull(ck) { if (ck && ck.checked) { ck.checked = false; ck.dispatchEvent(new Event("change")); } }
+  [].forEach.call(document.querySelectorAll(".fsck"), function (ck) {
+    ck.addEventListener("change", function () {
+      var fr = ck.nextElementSibling, v = fr.querySelector(".vid-el");
+      if (ck.checked) {
+        if (v.dataset.full) { v.src = v.dataset.full; v.loop = false; }
+        v.muted = false; v.controls = true; try { v.currentTime = 0; } catch (e) {}
+        var p = v.play(); if (p && p.catch) p.catch(function () { v.muted = true; v.play().catch(function () {}); });
+        videoEvent(true); /* o som ambiente pausa enquanto o vídeo toca */
+        var rf = fr.requestFullscreen || fr.webkitRequestFullscreen;
+        if (rf && !/iPhone|iPad|iPod/.test(navigator.userAgent) && screen.orientation && screen.orientation.lock) {
+          try {
+            var q = rf.call(fr);
+            if (q && q.then) q.then(function () { return screen.orientation.lock("landscape"); })
+              .catch(function () { /* sem trava de giro: volta ao giro por CSS */ if (document.fullscreenElement) { ignoreExit = true; document.exitFullscreen().catch(function () {}); } });
+          } catch (e) {}
+        }
+        var cl = fr.querySelector(".vclose"); if (cl) try { cl.focus({ preventScroll: true }); } catch (e) {}
+      } else {
+        if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(function () {});
+        try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) {}
+        playPrev(v); videoEvent(false);
+        var ex = fr.querySelector(".vexpand"); if (ex && document.activeElement !== ex) try { ex.focus({ preventScroll: true }); } catch (e) {}
+      }
+    });
+  });
+  document.addEventListener("fullscreenchange", function () {
+    if (ignoreExit) { ignoreExit = false; return; }
+    if (!document.fullscreenElement) [].forEach.call(document.querySelectorAll(".fsck:checked"), leaveFull);
+  });
   function focusables(root) {
-    return [].slice.call(root.querySelectorAll('a[href],button:not([disabled]),input:not(.ovr):not([disabled]),iframe,[tabindex="0"]'))
+    return [].slice.call(root.querySelectorAll('a[href],button:not([disabled]),input:not(.ovr):not([disabled]),video[controls],[tabindex="0"]'))
       .filter(function (n) { return n.offsetWidth || n.offsetHeight || n.getClientRects().length; });
   }
   /* guarda o botão que abriu a janela, para devolver o foco ao fechar (clicar num <label> foca o rádio escondido) */
@@ -82,7 +123,8 @@
   function sync() {
     var prev = open, now = null;
     radios.forEach(function (r) { if (r.checked && r.id !== "o-none") now = r; });
-    if (prev && prev !== now) resetVideo(prev);
+    if (prev && prev !== now) { [].forEach.call(prev.nextElementSibling.querySelectorAll(".fsck:checked"), leaveFull); stopVid(vidOf(prev)); }
+    if (now && now.id.indexOf("o-v-") === 0) playPrev(vidOf(now));
     if (now && !prev) { lastFocus = trigger || document.activeElement; trigger = null; if (page) page.inert = true; }
     if (!now && prev) {
       if (page) page.inert = false;
@@ -99,33 +141,17 @@
   radios.forEach(function (r) { r.addEventListener("change", sync); });
   document.addEventListener("keydown", function (e) {
     if (!open) return;
-    if (e.key === "Escape") { none.checked = true; sync(); return; }
+    if (e.key === "Escape") {
+      var fc = document.querySelector(".fsck:checked");
+      if (fc) { leaveFull(fc); return; } /* Esc sai primeiro da tela cheia */
+      none.checked = true; sync(); return;
+    }
     if (e.key === "Tab") { /* mantém o foco dentro da janela */
       var list = focusables(open.nextElementSibling); if (!list.length) return;
       var first = list[0], last = list[list.length - 1], cur = document.activeElement;
       if (e.shiftKey && (cur === first || list.indexOf(cur) < 0)) { e.preventDefault(); last.focus(); }
       else if (!e.shiftKey && (cur === last || list.indexOf(cur) < 0)) { e.preventDefault(); first.focus(); }
     }
-  });
-
-  /* ---------- vídeo: capa -> player do YouTube (modo privacidade) ---------- */
-  document.addEventListener("click", function (e) {
-    var a = e.target.closest && e.target.closest(".vposter"); if (!a) return;
-    var id = a.getAttribute("data-yt");
-    if (!/^[A-Za-z0-9_-]{11}$/.test(id || "")) return; /* id inesperado: deixa o link normal abrir o YouTube */
-    e.preventDefault();
-    var v = a.parentNode, f = document.createElement("iframe");
-    f.src = "https://www.youtube-nocookie.com/embed/" + encodeURIComponent(id) + "?autoplay=1&playsinline=1&rel=0&modestbranding=1";
-    f.title = a.getAttribute("aria-label") || "Vídeo do lote";
-    f.allow = "autoplay; encrypted-media; picture-in-picture; fullscreen";
-    f.allowFullscreen = true;
-    f.referrerPolicy = "strict-origin-when-cross-origin";
-    f.setAttribute("sandbox", "allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox");
-    v._poster = a; v.innerHTML = ""; v.appendChild(f);
-    var o = document.createElement("a");
-    o.className = "vopen"; o.href = a.href; o.target = "_blank"; o.rel = "noopener noreferrer"; o.textContent = "Abrir em tela cheia no YouTube";
-    v.parentNode.insertBefore(o, v.nextSibling); v._link = o;
-    videoEvent(true); /* o áudio ambiente pausa enquanto o vídeo toca */
   });
 
   /* ---------- link direto: #lote-01 ---------- */

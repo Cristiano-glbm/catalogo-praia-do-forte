@@ -5,7 +5,6 @@
 .push{margin-left:auto}
 .owners.first{margin-top:0}
 .meta.gold{color:var(--gold)}
-.vthumb{width:100%;height:100%;object-fit:cover}
 /* tela 404 */
 .nf{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;padding:40px 0}
 .nf .valor-mini{margin-bottom:8px}
@@ -33,5 +32,4 @@ label[tabindex="0"]:focus-visible{outline:3px solid var(--sky);outline-offset:3p
   .vframe{margin-top:7px;width:min(100%,calc(21vh * 16 / 9));width:min(100%,calc(21dvh * 16 / 9))}
   .pl-cta{margin-top:7px}
   .player .btn{padding:7px 12px;font-size:.82rem}
-  .vopen{display:none}
 }

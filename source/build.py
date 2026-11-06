@@ -17,6 +17,10 @@ C=lambda p:'../img/'+p   # caminho visto pelo CSS
 H=lambda p:'assets/img/'+p  # caminho visto pelo HTML
 E=lambda s: html.escape(str(s or ''),quote=True)
 WA_NUM="5562998119850"
+def VIDEO(l):
+    k=l['num'].lower()
+    return (f'<video class="vid-el" muted loop playsinline preload="none" aria-label="Vídeo do lote {lab(l)}" data-poster="assets/video/capas/lote-{k}.jpg" '
+            f'data-prev="assets/video/previa/lote-{k}.mp4" data-full="assets/video/completo/lote-{k}.mp4" disablepictureinpicture></video>')
 NEWTAB='<span class="sr"> (abre em nova aba)</span>'
 WAICON='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 0 0 3.7 16.9L2.3 21.8l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7a8 8 0 0 1-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Zm4.4-6c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.5-.4h-.5a.9.9 0 0 0-.6.3 2.7 2.7 0 0 0-.9 2c0 1.2.9 2.4 1 2.5.1.2 1.8 2.7 4.3 3.8 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.2.2-.6.2-1.1.1-1.2l-.6-.4Z"/></svg>'
 WA_GEN=f"https://wa.me/{WA_NUM}?text="+quote("Olá! Vim pelo catálogo do Leilão Praia do Forte.")
@@ -29,7 +33,6 @@ MODS={
 short=lambda m: MODS[m][0].replace("Pacote duplo de aspiração","Pacote duplo")
 slug=lambda l:"lote-"+l['num'].lower()
 lab=lambda l:"Praia do Forte" if l['num']=="PF" else l['num']
-def ytid(u): return parse_qs(urlparse(u).query)['v'][0]
 def wa(l):
     n=" e ".join(a['name']+" "+a['affix'] for a in l['animals'])
     return f"https://wa.me/{WA_NUM}?text="+quote(f"Olá! Tenho interesse no Lote {lab(l)} – {n}, do Leilão Praia do Forte.")
@@ -44,7 +47,7 @@ def herd(l,link=True):
         out.append(f'<label class="cow" for="o-v-{slug(l)}" aria-label="Assistir ao vídeo de {E(a["name"])}">{inner}</label>' if link else f'<span class="cow">{inner}</span>')
     return f'<div class="herd{" two" if two else ""}">{"".join(out)}</div>'
 def stage(l,first=False):
-    return (f'<div class="stage"><div class="sky"></div><div class="isle" aria-hidden="true"></div><div class="grass"></div>{herd(l)}<div class="church" aria-hidden="true"></div>'
+    return (f'<div class="stage"><div class="sky"></div><div class="isle" aria-hidden="true"></div><div class="grass"></div>{herd(l)}<div class="grass-front" aria-hidden="true"></div><div class="church" aria-hidden="true"></div>'
             f'<label class="vid" for="o-v-{slug(l)}">VÍDEO <span class="play" aria-hidden="true"></span></label>'+('<span class="tap">Toque no animal</span>' if first else '')+'</div>')
 L=data.L
 cards=[];sheets=[];players=[]
@@ -80,7 +83,6 @@ for i,l in enumerate(L):
 <div class="dlg-cta"><label class="btn solid" for="o-v-{s}">▶ Assistir ao vídeo</label><a class="btn" href="{E(wa(l))}" target="_blank" rel="noopener noreferrer">{WAICON}Tenho interesse{NEWTAB}</a></div>
 <p class="note">{MODS[l['mod']][0]}: {MODS[l['mod']][1]}</p></div>
 <div>{blocks}{f'<div class="rels"><h4>Família</h4><div class="rel-row">{rels}</div></div>' if rels else ''}</div></div></div></div>''')
-    vid=ytid(l['video'])
     def pinfo(x,compact):
         meta=" · ".join(v for v in [f"RG {x['rg']}",f"Nasc. {x['nasc']}",x['peso'] or ""] if v)
         if compact:
@@ -93,7 +95,7 @@ for i,l in enumerate(L):
 <div class="pl-top">{head}<label class="icon-btn push" for="o-none" aria-label="Fechar">✕</label></div>
 <div class="spot">{herd(l,False)}</div>
 <div class="pl-info{" two" if two else ""}"><div class="pi-row">{"".join(pinfo(x,two) for x in a)}</div>{note}</div>
-<div class="vframe"><a class="vposter" href="{E(l['video'])}" target="_blank" rel="noopener noreferrer" data-yt="{vid}" aria-label="Assistir ao vídeo de {title(l)}"><img class="vthumb" src="https://i.ytimg.com/vi/{vid}/hqdefault.jpg" alt="" width="480" height="360" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="vshade"></span><span class="vplay" aria-hidden="true"></span><span class="vlabel">Toque para assistir</span></a></div>
+<input type="checkbox" class="fsck" id="fs-{s}" tabindex="-1" aria-hidden="true"><div class="vframe">{VIDEO(l)}<label class="vexpand" for="fs-{s}" aria-label="Assistir ao vídeo do lote {lab(l)} em tela cheia"><span class="vplay" aria-hidden="true"></span><span class="vlabel">Toque para tela cheia</span></label><label class="vclose" for="fs-{s}" aria-label="Sair da tela cheia">✕</label><span class="vtag">{E(lab(l) if l["num"]=="PF" else "Lote "+l["num"])} · {title(l)}</span></div>
 <div class="pl-cta"><a class="btn wa" href="{E(wa(l))}" target="_blank" rel="noopener noreferrer">{WAICON}Tenho interesse{NEWTAB}</a><label class="btn" for="o-{s}">Ficha completa</label></div>
 </div></div>''')
 counts={}
@@ -118,8 +120,8 @@ css+=fil
 css+=rd('styles/a11y.css')+rd('styles/ambient.css')
 # ---------------- HTML ----------------
 VAL=lambda cls: f'<div class="{cls}" role="img" aria-label="Valor Assessoria Pecuária"><div class="ink"></div><img src="{H(D["valor_gold"])}" alt=""></div>'
-CSP=("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' https://i.ytimg.com; font-src 'self'; media-src 'self'; "
-     "frame-src https://www.youtube-nocookie.com; connect-src 'none'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'")
+CSP=("default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; media-src 'self'; "
+     "frame-src 'none'; connect-src 'none'; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'")
 CSPMETA=f'<meta http-equiv="Content-Security-Policy" content="{CSP}">'
 absu=lambda path:(SITE_URL+'/'+path) if SITE_URL else path
 CANON=('<link rel="canonical" href="'+SITE_URL+'/">\n') if SITE_URL else ''

@@ -17,6 +17,10 @@ catalogo-praia-do-forte/
 │       │   ├── boot.js      remove a classe "no-js" (roda no <head>)
 │       │   ├── app.js       contagem, busca, janelas, teclado, vídeo   (opcional: o site funciona sem JS)
 │       │   └── ambient.js   som ambiente + controle de volume/mudo
+│       ├── video/
+│       │   ├── completo/    vídeo completo de cada lote (720p, com som): lote-pf, lote-01 … lote-27
+│       │   ├── previa/      trecho de 8 s em loop, sem som, para o quadro do animal
+│       │   └── capas/       imagem de capa de cada vídeo
 │       ├── audio/ambiente.m4a    trilha de fundo (extraída do vídeo enviado)
 │       ├── fonts/           Playfair Display, Jost e Pinyon Script (hospedadas aqui, sem Google Fonts)
 │       └── img/
@@ -32,7 +36,7 @@ catalogo-praia-do-forte/
 │   ├── styles/              base.css, extra.css, a11y.css, ambient.css
 │   └── scripts/             boot.js, app.js, ambient.js  (copiados para public/assets/js/)
 ├── extras/
-│   └── catalogo-arquivo-unico.html   versão em 1 arquivo (imagens e fontes embutidas), sem áudio — p/ WhatsApp/e-mail/duplo clique
+│   └── catalogo-arquivo-unico.html   versão em 1 arquivo (imagens, fontes e trechos de 6 s dos vídeos embutidos), sem áudio nem vídeos completos — p/ WhatsApp/e-mail/duplo clique
 ├── netlify.toml             configuração do deploy (publish = public)
 ├── PROMPT-SITE-COMPLETO.md  especificação completa do projeto
 └── README.md
@@ -42,7 +46,9 @@ catalogo-praia-do-forte/
 
 Não há etapa de build obrigatória: a pasta `public/` já está pronta.
 
-**Opção A — arrastar e soltar (mais rápida):** acesse https://app.netlify.com/drop e arraste a pasta **`public`**.
+**Atenção ao tamanho:** os vídeos somam ~255 MB. Prefira a opção B (Git) ou C (CLI); o arrastar e soltar pode demorar ou falhar.
+
+**Opção A — arrastar e soltar:** acesse https://app.netlify.com/drop e arraste a pasta **`public`**.
 > Os cabeçalhos de segurança e cache ficam em `public/_headers`, que a Netlify aplica em qualquer tipo de deploy (inclusive este).
 
 **Opção B — via Git (recomendada):** suba esta pasta para um repositório → Netlify: *Add new site → Import an existing project*. Os campos vêm do `netlify.toml` (publish: `public`, sem build).
@@ -82,10 +88,10 @@ Dê preferência ao servidor local. Abrir `public/index.html` com duplo clique f
 
 | Item | Como está |
 |---|---|
-| CSP | `script-src 'self'`, `style-src 'self'` (nenhum script/estilo inline), imagens só do site + miniaturas do YouTube, `frame-src` só `youtube-nocookie.com`, `connect-src 'none'`, `frame-ancestors 'none'`. Aplicada por cabeçalho (`public/_headers`) **e** por `<meta>` |
+| CSP | `script-src 'self'`, `style-src 'self'` (nenhum script/estilo inline), imagens, vídeos e áudio só do próprio site, `frame-src 'none'`, `connect-src 'none'`, `frame-ancestors 'none'`. Aplicada por cabeçalho (`public/_headers`) **e** por `<meta>` |
 | Cabeçalhos | HSTS, `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`, `Permissions-Policy` (câmera, microfone, localização, pagamento, USB desativados) |
-| Terceiros | Sem Google Fonts (fontes hospedadas), sem analytics, sem bibliotecas. Único terceiro: YouTube (modo privacidade, `iframe` com `sandbox`, só carrega quando o visitante toca em "assistir") |
-| Links externos | `rel="noopener noreferrer"`; id do vídeo validado (`[A-Za-z0-9_-]{11}`) antes de montar o `iframe` |
+| Terceiros | **Nenhum.** Sem Google Fonts (fontes hospedadas), sem YouTube (vídeos próprios), sem analytics, sem bibliotecas |
+| Links externos | `rel="noopener noreferrer"`; nenhum `iframe` na página |
 | JS | Sem `innerHTML` com dados externos, sem `eval`, sem handlers inline; `localStorage` só guarda volume/mudo (com `try/catch`) |
 | Dados | Nenhum formulário, cookie ou coleta de dados pessoais. Contato é sempre via WhatsApp (link `wa.me`) |
 
@@ -109,13 +115,30 @@ python3 source/make_single.py    # (opcional) gera extras/catalogo-arquivo-unico
 **Trocar a foto de um animal** — substitua o arquivo em `public/assets/img/animais/` mantendo o nome (WebP/PNG transparente, ~760 px de largura, recorte terminando nas pernas).
 **WhatsApp** — `WA_NUM` em `source/build.py`.
 **Data do evento** — `START` em `source/scripts/app.js` (UTC: 06/11/2026 19h BRT = 22h UTC).
-**Vídeos** — cada lote usa o link do YouTube do catálogo. Para MP4 próprio, troque o bloco `.vframe` por `<video ... controls playsinline preload="metadata">` e libere o domínio em `media-src` da CSP.
+**Vídeos** — ficam em `public/assets/video/` com o nome do lote (`lote-pf`, `lote-01` … `lote-27`; os lotes 07, 10 e 13 não existem no catálogo):
+- `completo/lote-XX.mp4` — toca em tela cheia, com som e controles (H.264 720p + AAC, ~10 MB).
+- `previa/lote-XX.mp4` — trecho de 8 s em loop, sem som, no quadro da tela do animal (640×360, ~0,5 MB).
+- `capas/lote-XX.jpg` — capa exibida enquanto o vídeo carrega.
+
+Para trocar um vídeo, substitua os três arquivos mantendo o nome. Comandos usados (ffmpeg):
+```bash
+# completo
+ffmpeg -i original.mov -vf scale=1280:720 -c:v libx264 -preset veryfast -crf 28 -maxrate 1200k -bufsize 2400k -pix_fmt yuv420p -c:a aac -b:a 96k -movflags +faststart completo/lote-XX.mp4
+# prévia (8 s a partir de 30% do vídeo)
+ffmpeg -ss <inicio> -t 8 -i original.mov -an -vf scale=640:360,fps=30 -c:v libx264 -preset slow -crf 30 -pix_fmt yuv420p -movflags +faststart previa/lote-XX.mp4
+# capa
+ffmpeg -ss <inicio> -i original.mov -frames:v 1 -vf scale=960:540 -q:v 5 capas/lote-XX.jpg
+```
+Os vídeos só carregam quando o visitante abre o animal (nada pesa na abertura da página). Com *movimento reduzido* ou *economia de dados* ativos, o quadro mostra só a capa; o vídeo completo continua a um toque.
+**Tela cheia girada** — ao tocar no quadro, o vídeo expande e gira 90° na horizontal (como o YouTube), mesmo com o celular travado na vertical; no Android/computador usa tela cheia real e trava em paisagem. `Esc` ou ✕ volta ao quadro. Enquanto o vídeo completo toca, o som ambiente pausa sozinho.
+**Originais pesados** — mantenha os vídeos originais fora de `public/` (ex.: pasta `videos-originais/`, já no `.gitignore`); tudo que está em `public/` vai ao ar.
+**Se o acesso crescer** — mova `assets/video/` para um CDN de vídeo (Bunny/Cloudflare Stream/S3) e troque os caminhos `data-prev` / `data-full` / `data-poster` em `source/build.py` (e o domínio em `media-src` da CSP).
 > Sempre edite em `source/` e rode o build: mexer direto em `public/` é sobrescrito na próxima geração.
 
 ## Regras do projeto (manter em qualquer alteração)
 
 1. Pernas dos animais nunca cortadas soltas (sempre apoiadas na grama ou no painel).
-2. A tela do vídeo cabe inteira no celular, sem rolagem (testado de 320×568 a 430×932, nos 25 lotes).
+2. A tela do vídeo cabe inteira no celular, sem rolagem (testado de 320×568 a 430×932, nos 25 lotes); a tela cheia gira para a horizontal.
 3. Tudo funciona **sem JavaScript**; o JS só melhora.
 4. Nada de link (`<a>`) em animais/botões internos — evita o menu de "pressionar e segurar" do iPhone.
 5. Respeitar `prefers-reduced-motion`, modo claro/escuro e áreas seguras do iPhone.
